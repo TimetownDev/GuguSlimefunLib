@@ -1,6 +1,8 @@
 package me.ddggdd135.guguslimefunlib.utils;
 
 import city.norain.slimefun4.SlimefunExtended;
+import de.tr7zw.changeme.nbtapi.NBT;
+import de.tr7zw.changeme.nbtapi.iface.ReadableNBT;
 import io.github.thebusybiscuit.slimefun4.api.MinecraftVersion;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItem;
 import io.github.thebusybiscuit.slimefun4.api.items.SlimefunItemStack;
@@ -9,10 +11,10 @@ import io.github.thebusybiscuit.slimefun4.core.debug.Debug;
 import io.github.thebusybiscuit.slimefun4.core.debug.TestCase;
 import io.github.thebusybiscuit.slimefun4.implementation.Slimefun;
 import io.github.thebusybiscuit.slimefun4.libraries.commons.lang.Validate;
-import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import io.github.thebusybiscuit.slimefun4.utils.SlimefunUtils;
 import java.util.*;
 import javax.annotation.Nonnull;
+import javax.annotation.Nullable;
 import me.ddggdd135.guguslimefunlib.api.ItemHashMap;
 import me.ddggdd135.guguslimefunlib.items.ItemKey;
 import me.ddggdd135.guguslimefunlib.items.ItemType;
@@ -166,7 +168,7 @@ public class ItemUtils {
         return item;
     }
 
-    public static ItemStack[] tryTakeItem(
+    public static ItemStack[] takeItem(
             @Nonnull BlockMenu blockMenu, @Nonnull ItemHashMap<Integer> items, int... slots) {
         ItemHashMap<Integer> amounts = new ItemHashMap<>(items);
         ItemHashMap<Integer> found = new ItemHashMap<>();
@@ -197,21 +199,28 @@ public class ItemUtils {
     }
 
     @Nonnull
-    public static Pair<ItemType, ItemMeta> getItemType(@Nonnull ItemStack itemStack) {
-        ItemMeta meta = itemStack.getItemMeta();
-        if (itemStack.getType().isAir() || itemStack.getAmount() == 0)
-            return new Pair<>(new ItemType(false, null, Material.AIR), meta);
+    public static ItemType getItemType(@Nonnull ItemStack itemStack) {
+        if (itemStack.getType().isAir() || itemStack.getAmount() == 0) return new ItemType(false, null, Material.AIR);
         if (itemStack instanceof SlimefunItemStack sfis) {
-            return new Pair<>(new ItemType(true, sfis.getItemId(), sfis.getType()), meta);
+            return new ItemType(true, sfis.getItemId(), sfis.getType());
         }
 
-        Optional<String> id = Slimefun.getItemDataService().getItemData(meta);
+        String id = getSFId(itemStack);
 
-        if (id.isPresent()) {
-            return new Pair<>(new ItemType(true, id.get(), itemStack.getType()), meta);
+        if (id != null) {
+            return new ItemType(true, id, itemStack.getType());
         }
 
-        return new Pair<>(new ItemType(false, null, itemStack.getType()), meta);
+        return new ItemType(false, null, itemStack.getType());
+    }
+
+    @Nullable public static String getSFId(@Nonnull ItemStack itemStack) {
+        return NBT.get(itemStack, x -> {
+            ReadableNBT pdc = x.getCompound("PublicBukkitValues");
+            if (pdc == null) return null;
+
+            return pdc.getString("slimefun:slimefun_item");
+        });
     }
 
     public static @Nonnull Optional<DistinctiveItem> getDistinctiveItem(@Nonnull String id) {

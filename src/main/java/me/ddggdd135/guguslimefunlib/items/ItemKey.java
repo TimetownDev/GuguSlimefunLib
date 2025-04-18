@@ -1,15 +1,12 @@
 package me.ddggdd135.guguslimefunlib.items;
 
-import io.github.thebusybiscuit.slimefun4.libraries.dough.collections.Pair;
 import me.ddggdd135.guguslimefunlib.nms.ItemStackNMS;
 import me.ddggdd135.guguslimefunlib.utils.ItemUtils;
 import org.bukkit.inventory.ItemStack;
-import org.bukkit.inventory.meta.ItemMeta;
 
 public class ItemKey {
     private ItemStack itemStack;
     private ItemType type;
-    private ItemMeta meta;
     private Object nms;
     private int hash;
 
@@ -26,10 +23,7 @@ public class ItemKey {
                 nms = nmsStack;
             }
 
-            Pair<ItemType, ItemMeta> data = ItemUtils.getItemType(itemStack);
-
-            this.type = data.getFirstValue();
-            this.meta = data.getSecondValue();
+            this.type = ItemUtils.getItemType(itemStack);
             this.hash = type.hashCode();
         } catch (Throwable throwable) {
             throw new RuntimeException(throwable);
